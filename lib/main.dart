@@ -1,220 +1,212 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_tex/flutter_tex.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
-      child: MaterialApp(
-        title: 'Namer App',
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown),
+    return MaterialApp(
+      title: 'Flashcards App',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'FLASHCARDS APP',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-        home: MyHomePage(),
+        backgroundColor: Color.fromRGBO(94, 128, 99, 1),
+        elevation: 0, // Remove app bar shadow
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/bg_img.png'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.4), BlendMode.darken),
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: screenWidth / 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemBuilder: (context, index) {
+                List<String> subjects = ['Calculus', 'Geometry', 'Mechanics', 'EEE'];
+                double textSize = screenWidth * 0.05;
+
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailsPage(
+                          subject: subjects[index],
+                          cardContent: getCardContent(index),
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(94, 128, 99, 0.9),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        subjects[index],
+                        style: TextStyle(
+                          fontSize: textSize,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+              itemCount: 4,
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-// ...
+class DetailsPage extends StatelessWidget {
+  final String subject;
+  final List<String> cardContent;
 
-class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
-
-  // ↓ Add this.
-  void getNext() {
-    current = WordPair.random();
-    notifyListeners();
-  }
-
-  var favorites = <WordPair>[];
-
-
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
-    } else {
-      favorites.add(current);
-    }
-    notifyListeners();
-  }
-
-
-
-}
-
-// ...
-class BigCard extends StatelessWidget {
-  const BigCard({
-    super.key,
-    required this.pair,
-  });
-
-  final WordPair pair;
+  const DetailsPage({required this.subject, required this.cardContent, Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var theme=Theme.of(context);
-    var style=theme.textTheme.displayMedium!.copyWith(
-      color:theme.colorScheme.onPrimary,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Swipe Cards - $subject',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Color.fromRGBO(94, 128, 99, 1),
+      ),
+      body: Center(
+        child: SwipeCards(subject: subject, cardContent: cardContent),
+      ),
     );
+  }
+}
 
+class SwipeCards extends StatelessWidget {
+  final String subject;
+  final List<String> cardContent;
+
+  SwipeCards({required this.subject, required this.cardContent, Key? key})
+      : super(key: key);
+
+  Widget buildCard(String latexExpression) {
+    Color cardColor = Color.fromRGBO(155, 186, 159, 1);
 
     return Card(
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Text(
-          pair.asLowerCase,
-          style: style,
-          semanticsLabel: pair.asPascalCase,
+      elevation: 5.0,
+      margin: EdgeInsets.all(20.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+        side: BorderSide(color: Colors.black, width: 2.0),
+      ),
+      child: Container(
+        padding: EdgeInsets.all(16.0),
+        color: cardColor,
+        child: Center(
+          child: TeXView(
+            renderingEngine: TeXViewRenderingEngine.katex(),
+            child: TeXViewDocument(
+              latexExpression,
+              style: TeXViewStyle.fromCSS('text-align: center; font-size: 30px'),
+            ),
+          ),
         ),
       ),
     );
   }
-}
-
-class MyHomePage extends StatefulWidget {
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex =0 ;
   @override
   Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = GeneratorPage();
-        break;
-      case 1:
-        page = FavoritesPage();
-        break;
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
-    return Scaffold(
-      body: Row(
-        children: [
-          SafeArea(
-            child: NavigationRail(
-              extended: false,
-              destinations: [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home),
-                  label: Text('Home'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.favorite),
-                  label: Text('Favorites'),
-                ),
-              ],
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex=value;
-                });
-
-              },
-            ),
-          ),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: page,
-            ),
-          ),
-        ],
-      ),
+    return PageView.builder(
+      itemCount: cardContent.length,
+      itemBuilder: (context, index) {
+        return buildCard(cardContent[index]);
+      },
     );
   }
 }
 
 
-class GeneratorPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    var pair = appState.current;
-
-    IconData icon;
-    if (appState.favorites.contains(pair)) {
-      icon = Icons.favorite;
-    } else {
-      icon = Icons.favorite_border;
-    }
-
-    // ...
-
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-
-          BigCard(pair: pair),
-          SizedBox(height: 30),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  appState.toggleFavorite();
-                },
-                icon: Icon(icon),
-                label: Text('Like'),
-              ),
-              SizedBox(width: 20),
-              ElevatedButton(
-                onPressed: () {
-                  appState.getNext();
-                },
-                child: Text('Next'),
-              ),
-            ],
-          ),
-
-        ],
-      ),
-    );
-  }
-}
-
-class FavoritesPage extends StatelessWidget{
-  @override
-  Widget build(BuildContext context) {
-    var appState=context.watch<MyAppState>();
-
-    if (appState.favorites.isEmpty){
-      return Center(
-        child: Text('No favorites yet!!'),
-      );
-    }
-    return ListView(
-      children: [
-        Padding(
-          padding:const EdgeInsets.all(20),
-          child: Text('You have '
-              '${appState.favorites.length} favorites:')
-        ),
-        for (var pair in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
-
-          ),
-      ],
-    );
-  }
-
+List<String> getCardContent(int index) {
+  List<List<String>> cardContents = [
+    [
+      r'\(\frac{d}{dx} x = 1\)',
+      r'\(\frac{d}{dx} a = 0\)',
+      r'\(\frac{d}{dx} \frac{1}{x} = -\frac{1}{x^2}\)',
+      r'\(\frac{d}{dx}\ln(x)\)',
+      r'\(\frac{d}{dx} e^x = e^x\)',
+    ],
+    [
+      r' Area of Square = \[ A = s^2 \]',
+      r' Area of Rectangle = \[ A = l \cdot w \]',
+      r' Area of Circle = \[ A_{\text{circle}} = \pi r^2 \]',
+      r' Area of Parallelogram = \[ A_{\text{parallelogram}} = b \cdot h \]',
+      r'\Area of Cube = [ A = 6s^2 \]',
+    ],
+    [
+      r'\[ v = u + at \]',
+      r'\[ KE = \frac{1}{2} m v^2 \]',
+      r'\[ W = mg \]',
+      r'\[ F = ma \]',
+      r'\[ P = \frac{W}{t} \]',
+    ],
+    [
+      r'\[ I = \frac{Q}{t} \]',
+      r'\[ R = \frac{V}{I} \]',
+      r'\[ R_{\text{series}} = R_1 + R_2 + \ldots + R_n \]',
+      r'\[ \frac{1}{R_{\text{parallel}}} = \frac{1}{R_1} + \frac{1}{R_2} + \ldots + \frac{1}{R_n} \]',
+      r'\[ R = \rho \cdot \frac{L}{A} \]',
+    ],
+  ];
+  return cardContents[index];
 }
