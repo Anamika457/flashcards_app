@@ -36,7 +36,7 @@ class MyHomePage extends StatelessWidget {
           ),
         ),
         backgroundColor: Color.fromRGBO(94, 128, 99, 1),
-        elevation: 0, // Remove app bar shadow
+        elevation: 0, 
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -183,7 +183,7 @@ List<String> getCardContent(int index) {
       r'\(\frac{d}{dx} x = 1\)',
       r'\(\frac{d}{dx} a = 0\)',
       r'\(\frac{d}{dx} \frac{1}{x} = -\frac{1}{x^2}\)',
-      r'\(\frac{d}{dx}\ln(x)\)',
+      r'\(\frac{d}{dx}\ln(x) = \frac{1}{x}\)',
       r'\(\frac{d}{dx} e^x = e^x\)',
     ],
     [
